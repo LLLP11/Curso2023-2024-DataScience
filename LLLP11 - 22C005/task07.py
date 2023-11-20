@@ -29,10 +29,10 @@ from rdflib.plugins.sparql import prepareQuery
 ns = Namespace("http://somewhere#")
 vcard = Namespace("http://www.w3.orq/2001/vcard-rdf/3.0#")
 for s,p,o in g.triples((None, RDFS.subClassOf, ns.LivingThing)):
-  print(s)
-q1 = prepareQuery("SELECT ?x WHERE {?x rdfs:subClassOf ns:LivingThing}", initNs = {"rdfs": RDFS, "ns": ns})
+    print(s)
+q1 = prepareQuery("SELECT ?x WHERE {?x rdfs:subClassOf* http://somewhere#LivingThing.}", initNs = {"rdfs": RDFS, "ns": ns})
 for r in g.query(q1):
-  print(r)
+    print(r)
 
 """**TASK 7.2: List all individuals of "Person" with RDFLib and SPARQL (remember the subClasses)**
 
@@ -40,14 +40,16 @@ for r in g.query(q1):
 
 # TO DO
 # Visualize the results
-for persona, p, o in g.triples((None,RDF.type, ns.Person)):
-  print(persona)
-for subclase, p ,o in g.triples((None, RDFS.subClassOf,ns.Person)):
-  for persona, p, o in g.triples((None, RDF.type,subclase)):
-    print(persona)
-q1 = prepareQuery("SELECT ?x ?y WHERE {?x rdf:type/rdfs:subClassOf* ns:Person}", initNs = {"rdf":RDF, "ns": ns})
+q1 = prepareQuery('''
+    SELECT ?x ?y
+    WHERE {
+        {?x rdf:type/rdfs:subClassOf* ns:Person}
+        UNION
+        {?x rdf:type ns:Person}
+    }''', initNs = {"rdf":RDF, "ns": ns}
+)
 for r in g.query(q1):
-  print(r)
+    print(r)
 
 """**TASK 7.3: List all individuals of "Person" or "Animal" and all their properties including their class with RDFLib and SPARQL. You do not need to list the individuals of the subclasses of person**
 
@@ -56,35 +58,45 @@ for r in g.query(q1):
 # TO DO
 # Visualize the results
 for elem,p,o in g.triples((None, RDF.type, ns.Animal)):
-  for s,t,u in g.triples((elem, None,None)):
-    print(s,t,u)
+    for s,t,u in g.triples((elem, None,None)):
+        print(s,t,u)
+for elem,p,o in g.triples((None, RDF.type, ns.Person)):
+    for s,t,u in g.triples((elem, None,None)):
+        print(s,t,u)
 q1 = prepareQuery('''
-  SELECT ?x ?relacion
-  WHERE{
-    ?x rdf:type ns:Animal.
-    ?x ?relacion ?a
-  }''', initNs = {"rdf": RDF, "ns": ns}
+    SELECT ?x ?relacion
+    WHERE {
+        {?x rdf:type ns:Animal}
+        {?x ?relacion ?a}
+        UNION
+        {?x rdf:type ns:Person}
+        {?x ?relacion ?a}
+    }''', initNs = {"rdf":RDF, "ns": ns}
 )
 for r in g.query(q1):
-  print(r)
+print(r)
+
+
 
 """**TASK 7.4:  List the name of the persons who know Rocky**"""
 
 # TO DO
 # Visualize the results
-FOAF = Namespace("http://xmlns.com/foaf/0.1/")
+foaf = Namespace("http://xmlns.com/foaf/0.1/")
 for persona,p,o in g.triples((None, RDF.type, ns.Person)):
-  for a,q,r in g.triples((None, FOAF.knows, persona)):
-    print(a)
+    for a,q,r in g.triples((None, foaf.knows, persona)):
+        print(a)
 q1 = prepareQuery('''
-  SELECT DISTINCT ?x
-  WHERE{
-    ?x rdf:type ns:Person.
-    ?x FOAF:knows ns:RockySmith
-  }''', initNs = {"rdf": RDF, "ns": ns, "FOAF": FOAF}
-  )
+    SELECT ?name
+    WHERE {
+        ?person foaf:knows ns:RockySmith.
+        ?person http://www.w3.org/2001/vcard-rdf/3.0/Given ?name
+    }''', initNs = {"rdf": RDF, "ns": ns, "foaf": foaf}
+)
 for r in g.query(q1):
-  print(r)
+    print(r)
+
+
 
 """**Task 7.5: List the entities who know at least two other entities in the graph**"""
 
@@ -93,15 +105,17 @@ for r in g.query(q1):
 lista = []
 lista_def = []
 for n,s, o in g.triples((None, FOAF.knows, None)):
-  if s in lista:
-    lista_def += [s]
-  lista += [s]
+    if s in lista:
+        lista_def += [s]
+        lista += [s]
 print(lista_def)
 q1 = prepareQuery('''
-  SELECT DISTINCT ?x
-  WHERE{
-    ?x FOAF:knows ?y
-  }''', initNs = {"rdf": RDF, "ns": ns, "FOAF":FOAF}
+    SELECT ?x ?person1 ?person2
+    WHERE{
+        ?x foaf:knows ?person1.
+        ?x foaf:knows ?person2.
+        FILTER(?person1 != ?person2)
+    }''', initNs = {"rdf": RDF, "ns": ns, "FOAF":FOAF}
 )
 for r in g.query(q1):
-  print(r)
+print(r)
