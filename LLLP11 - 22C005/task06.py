@@ -50,9 +50,9 @@ for s, p, o in g:
 
 # TO DO
 # Visualize the results
-g.add((ns.JaneSmith, RDFS.Literal, ns.Researcher))
+g.add((ns.JaneSmith, RDF.type, ns.Researcher))
 for s, p, o in g:
-  print(s,p,o)
+    print(s,p,o)
 
 """**TASK 6.4: Add to the individual JaneSmith the email address, fullName, given and family names**"""
 
@@ -71,17 +71,19 @@ for s, p, o in g:
 
 # TO DO
 # Visualize the results
-g.add((ns.UPM, RDFS.Literal, ns.University))
+g.add((ns.UPM, RDF.type, ns.University))
 g.add((ns2.works_at, RDF.type, RDFS.Datatype))
 g.add((ns.JohnSmith, ns2.works_at, ns.UPM))
 for s, p, o in g:
-  print(s,p,o)
+    print(s,p,o)
 
 """**Task 6.6: Add that Jown knows Jane using the FOAF vocabulary**"""
 
 # TO DO
 # Visualize the results
-FOAF = Namespace("http://xmlns.com/foaf/0.1/")
-g.add((ns.Jown, ns.knowsJaneuses, ns.FOAFvocabulary))
+foaf=Namespace("http://xmlns.com/foaf/0.1/")
+g.add((ns.JohnSmith, RDF.type, foaf.Person))
+g.add((ns.JaneSmith, RDF.type, foaf.Person))
+g.add((ns.JohnSmith, foaf.knows, ns.JaneSmith))
 for s, p, o in g:
-  print(s,p,o)
+    print(s,p,o)
